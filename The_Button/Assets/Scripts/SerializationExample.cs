@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 [System.Serializable]
 public class SerializedGameObject
@@ -18,7 +19,7 @@ public class SerializationExample : MonoBehaviour
     void Start()
     {
         string dataPath = Application.persistentDataPath;   //< The persistentDataPath refers to a folder in AppData
-        exampleFilePath = dataPath + "/jsonExample.json";
+        exampleFilePath = dataPath + "/binaryExample.save";
 
         Write();
         Read();
@@ -32,17 +33,46 @@ public class SerializationExample : MonoBehaviour
         serializedGameObject.rotation = transform.rotation;
         serializedGameObject.scale = transform.localScale;
 
+        using (BinaryWriter writer = new BinaryWriter(File.Open(exampleFilePath, FileMode.OpenOrCreate)))
+        {
+            writer.Write(serializedGameObject.name);
 
-        string result = JsonUtility.ToJson(serializedGameObject, true);
-        Debug.Log($"{result}");
+            writer.Write(serializedGameObject.position.x);
+            writer.Write(serializedGameObject.position.y);
+            writer.Write(serializedGameObject.position.z);
 
-        System.IO.File.WriteAllText(exampleFilePath, result);
+            writer.Write(serializedGameObject.rotation.x);
+            writer.Write(serializedGameObject.rotation.y);
+            writer.Write(serializedGameObject.rotation.z);
+
+            writer.Write(serializedGameObject.scale.x);
+            writer.Write(serializedGameObject.scale.y);
+            writer.Write(serializedGameObject.scale.z);
+        }
     }
 
     private void Read()
     {
-        string readText = System.IO.File.ReadAllText(exampleFilePath);
-        SerializedGameObject deserializedGameObject = JsonUtility.FromJson<SerializedGameObject>(readText);
+        SerializedGameObject deserializedGameObject = new SerializedGameObject();
+
+        using (BinaryReader reader = new BinaryReader(File.Open(exampleFilePath, FileMode.OpenOrCreate)))
+        {
+             //> This is less save than JSON, as errors can occur if the binary file does not contain the information we are expecting to read here.
+            deserializedGameObject.name = reader.ReadString();
+
+            deserializedGameObject.position.x = reader.ReadSingle();
+            deserializedGameObject.position.y = reader.ReadSingle();
+            deserializedGameObject.position.z = reader.ReadSingle();
+
+            deserializedGameObject.rotation.x = reader.ReadSingle();
+            deserializedGameObject.rotation.y = reader.ReadSingle();
+            deserializedGameObject.rotation.z = reader.ReadSingle();
+
+            deserializedGameObject.scale.x = reader.ReadSingle();
+            deserializedGameObject.scale.y = reader.ReadSingle();
+            deserializedGameObject.scale.z = reader.ReadSingle();
+        }
+
         GameObject go = new GameObject();
         go.name = deserializedGameObject.name;
         go.transform.position = deserializedGameObject.position;
