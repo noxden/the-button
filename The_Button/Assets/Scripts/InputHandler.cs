@@ -29,13 +29,11 @@ public class InputHandler : MonoBehaviour
 
     public void OnMouseClicked(InputAction.CallbackContext context)
     {
-        // Debug.Log($"Mouse clicked at mouse position {GetMousePosition()}.");
         player?.TryClickTheButton(GetMousePosition());
     }
 
     public void OnButtonPressedDirectly(InputAction.CallbackContext context)
     {
-        // Debug.Log($"Button pressed directly.");
         player?.ClickTheButton();
     }
 

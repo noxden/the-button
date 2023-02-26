@@ -23,15 +23,11 @@ public class Player : MonoBehaviour
 
     public void TryClickTheButton(Vector2 mousePosition)
     {
-        // Debug.Log($"Player: Sending raycast.", this);
         Ray ray = Camera.main.ScreenPointToRay(mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             if (hit.collider.tag == "TheButton")
             {
-                // Debug.Log($"Player: Hit object with tag TheButton");
-                // if (button == null)
-                //     button = hit.collider.GetComponentInParent<TheButton>();     //< Previous implementation
                 button?.Click();
             }
         }

@@ -54,7 +54,8 @@ public class TheButton : MonoBehaviour
 
     private void UpdateModel(bool newPressedState)
     {
-        Debug.Log($"Button is now {(isPressed ? "pressed" : "not pressed")}.");
+        Debug.Log($"Button is now {(isPressed ? "↓" : "↑")}");
+        // Play animation here
         buttonModel.transform.localPosition = new Vector3(buttonModel.transform.localPosition.x, startingHeight + (newPressedState ? 1 : 0) * pressedHeightChange, buttonModel.transform.localPosition.z);
     }
 
