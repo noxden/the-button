@@ -22,7 +22,7 @@ public class TheButton : MonoBehaviour
     [SerializeField]
     private bool _isPressed;
 
-    private bool isPressed
+    public bool isPressed
     {
         get
         {

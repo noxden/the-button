@@ -122,6 +122,7 @@ public class SaveHandler : MonoBehaviour
         saveState.timestamp = System.DateTime.Now.ToFileTime();
         saveState.saveType = saveType;
         saveState.saveIndex = GetSaveIndex(saveType);
+        saveState.isButtonPressed = FindObjectOfType<TheButton>().isPressed;
 
         //> Convert to json and then save in file
         string serializedSaveState = JsonUtility.ToJson(saveState, true);
@@ -151,7 +152,7 @@ public class SaveHandler : MonoBehaviour
         }
 
         //> Inject read data into their respective objects
-        // = deserializedSaveState.isButtonPressed;
+        FindObjectOfType<TheButton>().isPressed = deserializedSaveState.isButtonPressed;
         // = deserializedSaveState.amountButtonPressesTotal;
         // = deserializedSaveState.amountMouseClicksTotal;
         // = deserializedSaveState.amountMouseClicksHit;
