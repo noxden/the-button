@@ -131,14 +131,10 @@ public class SaveHandler : MonoBehaviour
         return true;
     }
 
-    public void Save() => Save(SaveType.Manual);    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
 
     public bool Load(string readFilePath)   //< Returns whether loading was successful.    //? Potential property: FilePath which should be read from
     {
-        Debug.Log($"Loading...");
-
-        readFilePath = GetLatestSave();     //! FOR DEBUG PURPOSES ONLY
-        Debug.Log($"The latest save is {Path.GetFileNameWithoutExtension(readFilePath)}.");
+        Debug.Log($"Loading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
 
         //> Read json file and then fill its data back into a new save state
         if (!File.Exists((readFilePath)))
@@ -170,6 +166,9 @@ public class SaveHandler : MonoBehaviour
         return true;
     }
 
+    public void Save() => Save(SaveType.Manual);    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
+    public void Load() => Load(GetLatestSave());    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
+
     public void ForceAutosave()
     {
         if (canSave)
@@ -197,7 +196,7 @@ public class SaveHandler : MonoBehaviour
     private string GetLatestSave()
     {
         string[] allSaveFilesPaths = Directory.GetFiles(savesFolderPath);
-        Debug.Log($"Found the following ({allSaveFilesPaths.Length}) files: {PathsToFileNames(allSaveFilesPaths)}");
+        Debug.Log($"Found the following ({allSaveFilesPaths.Length}) files:\n{PathsToFileNames(allSaveFilesPaths)}");
 
         string filePathOfLatestSave = "";
         System.DateTime latestSaveTime = new System.DateTime();
