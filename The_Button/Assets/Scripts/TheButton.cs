@@ -40,7 +40,7 @@ public class TheButton : MonoBehaviour
     }
 
     private float startingHeight;
-    private float pressedHeightChange = -0.22f;
+    private float pressedHeightChange = -0.15f;
 
     private void Start()
     {
