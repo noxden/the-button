@@ -57,6 +57,7 @@ public class TheButton : MonoBehaviour
         Debug.Log($"Button is now {(isPressed ? "↓" : "↑")}");
         // Play animation here
         buttonModel.transform.localPosition = new Vector3(buttonModel.transform.localPosition.x, startingHeight + (newPressedState ? 1 : 0) * pressedHeightChange, buttonModel.transform.localPosition.z);
+        ColorHandler.instance.InvertPalette();
     }
 
     public void Click()
