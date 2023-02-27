@@ -13,9 +13,6 @@ using UnityEngine.Events;
 public class TheButton : MonoBehaviour
 {
     public GameObject buttonModel;
-
-    [Space(10)]
-    [Header("Events")]
     public static UnityEvent<bool> OnButtonStateChanged;
 
     [Header("Visualisation Section")]
@@ -24,6 +21,9 @@ public class TheButton : MonoBehaviour
 
     [SerializeField]
     private bool isClickable = true;
+
+    private float defaultHeight;
+    private float pressedHeightChange = -0.15f;
 
     public bool isPressed
     {
@@ -42,8 +42,22 @@ public class TheButton : MonoBehaviour
         }
     }
 
-    private float defaultHeight;
-    private float pressedHeightChange = -0.15f;
+    public bool isPressed_silent    //? Could probably be implemented better.
+    {
+        set
+        {
+            if (value == _isPressed)
+                return;
+
+            _isPressed = value;
+
+            float newHeight = defaultHeight + (_isPressed ? 1 : 0) * pressedHeightChange;
+            buttonModel.transform.localPosition = new Vector3(buttonModel.transform.localPosition.x, newHeight, buttonModel.transform.localPosition.z);
+
+            ColorHandler.instance.InvertPalette();
+        }
+    }
+
 
     private void Start()
     {
@@ -72,7 +86,10 @@ public class TheButton : MonoBehaviour
         //> Pre-Animation
         isClickable = false;
         if (!newButtonState)                        //< If the animation goes from "pressed -> not pressed", invert now, as
+        {                        
             ColorHandler.instance.InvertPalette();  //< the inverted palette is only used for the fully pressed down button.
+            // Play "Unpressed" audio
+        }
 
         //> While loop for animation
         float duration = 0.1f;
@@ -92,7 +109,10 @@ public class TheButton : MonoBehaviour
 
         //> Post-Animation
         if (newButtonState)
+        {
             ColorHandler.instance.InvertPalette();  //< Invert colors after the animation if it goes from "not pressed -> pressed".
+            // Play "Pressed" audio
+        }
         isClickable = true;
     }
 }

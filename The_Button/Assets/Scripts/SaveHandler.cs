@@ -152,7 +152,7 @@ public class SaveHandler : MonoBehaviour
         }
 
         //> Inject read data into their respective objects
-        FindObjectOfType<TheButton>().isPressed = deserializedSaveState.isButtonPressed;
+        FindObjectOfType<TheButton>().isPressed_silent = deserializedSaveState.isButtonPressed;
         // = deserializedSaveState.amountButtonPressesTotal;
         // = deserializedSaveState.amountMouseClicksTotal;
         // = deserializedSaveState.amountMouseClicksHit;
