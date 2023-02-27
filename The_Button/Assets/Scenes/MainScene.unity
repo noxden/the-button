@@ -421,6 +421,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buttonModel: {fileID: 210661413}
   _isPressed: 0
+  canBeClicked: 1
 --- !u!114 &122798196
 MonoBehaviour:
   m_ObjectHideFlags: 0
