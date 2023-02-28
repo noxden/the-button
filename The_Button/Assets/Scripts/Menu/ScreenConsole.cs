@@ -25,7 +25,7 @@ public class ScreenConsole : MonoBehaviour
 
     public void Display(string message)
     {
-        Display(message, Mathf.PI);
+        Display(message, Mathf.PI/2);
     }
 
     public void Display(string message, float duration)

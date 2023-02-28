@@ -116,10 +116,10 @@ public class SaveHandler : MonoBehaviour
                 data = new SavePersistentData();
             }
         }
-        else
-        {
-            WritePersistentData();
-        }
+        // else
+        // {
+        //     WritePersistentData();
+        // }
     }
 
     private void WritePersistentData()
@@ -187,7 +187,7 @@ public class SaveHandler : MonoBehaviour
             Debug.LogWarning($"SaveState could not be obtained, it might be corrupted -> Loading of SaveState failed.");
             return false;
         }
-        ScreenConsole.instance.Display($"Loaded \"{saveState.type.ToString()}Save-{data.GetSaveIndex(saveState.type)}\"...");
+        ScreenConsole.instance.Display($"Loaded \"{saveState.type.ToString()}Save-{saveState.index}\"...");
 
 
         //> Inject read data into their respective objects
@@ -249,8 +249,8 @@ public class SaveHandler : MonoBehaviour
     public static SaveState GetLatestSaveState()
     {
         List<string> allSaveFilePaths = GetAllSaveFilePaths();
-        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
-            return new SaveState();                                      //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
+        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)
+            return null;
 
         string filePathOfLatestSave = "";
         long latestSaveTime = 0L;
@@ -270,8 +270,8 @@ public class SaveHandler : MonoBehaviour
     public static SaveState GetLatestSaveState(SaveType saveType)
     {
         List<string> allSaveFilePaths = GetAllSaveFilePaths();
-        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
-            return new SaveState();                                      //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
+        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)
+            return null;  
 
         string filePathOfLatestSave = "";
         System.DateTime latestSaveTime = new System.DateTime();
