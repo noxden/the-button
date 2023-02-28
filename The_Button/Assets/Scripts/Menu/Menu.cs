@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum OpeningType { Solo, Overlay }
-public enum ClosingType { Close, Return }
+public enum ClosingType { JustClose, Return, Static }
 
 public class Menu : MonoBehaviour
 {
@@ -21,7 +21,7 @@ public class Menu : MonoBehaviour
     [SerializeField]
     public ClosingType closingType;
 
-    public MenuID returnToMenuOnClose { get; private set; } = MenuID.None;
+    public MenuID returnToMenuOnClose = MenuID.None;
 
     public void Open()
     {
@@ -30,7 +30,8 @@ public class Menu : MonoBehaviour
 
     public void Open(MenuID previousMenu)
     {
-        returnToMenuOnClose = previousMenu;
+        if (closingType != ClosingType.Static)
+            returnToMenuOnClose = previousMenu;
         this.gameObject.SetActive(true);
     }
 

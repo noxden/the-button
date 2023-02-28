@@ -76,7 +76,7 @@ public class MenuHandler : MonoBehaviour
         if (!TryResolveID(id, out Menu menu))
             return;
 
-        if (menu.closingType == ClosingType.Return)
+        if (menu.closingType != ClosingType.JustClose)
             Open(menu.returnToMenuOnClose);
 
         menu.Close();
