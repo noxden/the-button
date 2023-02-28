@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum MenuID { None, Main, Side, Load, Save, Settings, Credits, Achievements, LoadingScreen }
+public enum MenuID { None, Title, GameOverlay, Side, Load, Save, Settings, Credits, Achievements, Stats, Confirm, LoadingScreen }
 
 public class MenuHandler : MonoBehaviour
 {
@@ -17,6 +17,7 @@ public class MenuHandler : MonoBehaviour
 
     private Dictionary<MenuID, Menu> allMenus;
 
+    [Header("Visualisation Section")]
     [SerializeField]
     private List<Menu> openedMenus;
 
@@ -29,32 +30,29 @@ public class MenuHandler : MonoBehaviour
 
     private void Start()
     {
-        allMenus = new Dictionary<MenuID, Menu>();
-
         Menu[] menusInScene = FindObjectsOfType<Menu>(includeInactive: true);
-        foreach (var item in menusInScene)
+        foreach (Menu menu in menusInScene)
         {
-            if (!allMenus.TryAdd(item.id, item))
+            menu.gameObject.SetActive(false);   //< So that menus can be kept on in the editor without influencing the runtime game.
+        }
+
+        allMenus = new Dictionary<MenuID, Menu>();
+        foreach (Menu menu in menusInScene)
+        {
+            if (!allMenus.TryAdd(menu.id, menu))
                 Debug.LogWarning($"MenuHandler: Something went wrong while finding menus in scene.");
         }
 
         openedMenus = new List<Menu>();
 
-        Open(MenuID.Main, MenuID.None);  //! FOR DEBUG ONLY
+        //!> FOR DEBUG ONLY
+        Open(MenuID.Title);
     }
 
-    public void Open(MenuID id, MenuID source)
+    public void Open(MenuID id)
     {
-        if (id == MenuID.None)
+        if (!TryResolveID(id, out Menu menu))
             return;
-
-        Menu menu = allMenus[id];
-
-        if (menu == null)
-        {
-            Debug.LogWarning($"Dictionary does not contain entry for menu of ID \"{id}\".");
-            return;
-        }
 
         if (openedMenus.Contains(menu))
         {
@@ -62,22 +60,20 @@ public class MenuHandler : MonoBehaviour
             return;
         }
 
-        menu.Open(source);
+        if (menu.openingType == OpeningType.Solo)
+            CloseAll();
+
+        menu.Open();
         openedMenus.Add(menu);
     }
 
     public void Close(MenuID id)
     {
-        if (id == MenuID.None)
+        if (!TryResolveID(id, out Menu menu))
             return;
 
-        Menu menu = allMenus[id];
-
-        if (menu == null)
-        {
-            Debug.LogWarning($"Dictionary does not contain entry for menu of ID \"{id}\".");
-            return;
-        }
+        if (menu.returnToMenuOnClose != MenuID.None)
+            Open(menu.returnToMenuOnClose);
 
         menu.Close();
         openedMenus.Remove(menu);
@@ -87,8 +83,25 @@ public class MenuHandler : MonoBehaviour
     {
         foreach (var menu in openedMenus)
         {
-            menu.ForceClose();
+            menu.Close();
         }
-        openedMenus.Clear();
+        openedMenus.Clear();    //< Excess capacity does not need to be trimmed, as "openedMenus" will be filled again soon.
+    }
+
+    private bool TryResolveID(MenuID id, out Menu menu)
+    {
+        if (id == MenuID.None)
+        {
+            Debug.Log($"Menu ID was \"{MenuID.None}\", aborting action.");
+            menu = null;
+            return false;
+        }
+
+        if (!allMenus.TryGetValue(id, out menu))    //< Puts menu value from dictionary directly into this method's out parameter.
+        {
+            Debug.LogWarning($"Dictionary does not contain entry for menu of ID \"{id}\".");
+            return false;
+        }
+        return true;
     }
 }

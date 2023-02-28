@@ -69,7 +69,11 @@ public class SaveHandler : MonoBehaviour
     }
 
     //# Handling persistent data
-    void Start() => ReadPersistentData();
+    void Start()
+    {
+        ReadPersistentData();
+        Load(GetLatestSaveState());
+    }
 
     private void OnApplicationQuit() => WritePersistentData();
 
@@ -170,9 +174,7 @@ public class SaveHandler : MonoBehaviour
         return true;
     }
 
-    public void Save() => Save(SaveType.Manual);    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
-
-    public static void ForceAutosave()
+    public static void ForceAutosave()  //< Currently not necessary anywhere
     {
         if (canSave)
             Save(SaveType.Auto);
@@ -185,37 +187,51 @@ public class SaveHandler : MonoBehaviour
         }
     }
 
-    private static string PathsToFileNames(List<string> input)
+    private static List<string> GetAllSaveFilePaths()
     {
-        string output = "";
-        foreach (string entry in input)
-        {
-            output += Path.GetFileName(entry) + ", ";
-        }
-        output = output.Remove(output.Length - 2);
-        return output;
-    }
+        List<string> allSaveFilePaths = new List<string>(Directory.GetFiles(savesFolderPath));
+        allSaveFilePaths.RemoveAll(x => x.Contains(FileEnding) == false);
 
-    public static Dictionary<string, SaveState> GetAllSaveStatesWithPaths()
-    {
-        Dictionary<string, SaveState> allSaveStates = new Dictionary<string, SaveState>();
-
-        List<string> allSaveFilesPaths = new List<string>(Directory.GetFiles(savesFolderPath));
-        allSaveFilesPaths.RemoveAll(x => x.Contains(FileEnding) == false);
-
-        if (allSaveFilesPaths.Count == 0)
+        if (allSaveFilePaths.Count == 0)
         {
             Debug.Log($"Could not find any save files in \"{savesFolderPath}\".");
             return null;
         }
 
-        Debug.Log($"Found the following ({allSaveFilesPaths.Count}) files:\n{PathsToFileNames(allSaveFilesPaths)}");
+        Debug.Log($"Found the following ({allSaveFilePaths.Count}) files:\n{PathsToFileNameString(allSaveFilePaths)}");
+        return allSaveFilePaths;
+    }
 
-        foreach (string entry in allSaveFilesPaths)
-        {
+    public static Dictionary<string, SaveState> GetAllSaveStatesWithPathsInReverseOrder()
+    {
+        List<string> allSaveFilePaths = GetAllSaveFilePaths();
+        allSaveFilePaths.Reverse();
+
+        Dictionary<string, SaveState> allSaveStates = new Dictionary<string, SaveState>();
+        foreach (string entry in allSaveFilePaths)
             allSaveStates.Add(entry, Read(entry));
-        }
+
         return allSaveStates;
+    }
+
+    public static SaveState GetLatestSaveState()
+    {
+        List<string> allSaveFilePaths = GetAllSaveFilePaths();
+        if (allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
+            return new SaveState();          //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
+
+        string filePathOfLatestSave = "";
+        System.DateTime latestSaveTime = new System.DateTime();
+        foreach (string entry in allSaveFilePaths)
+        {
+            System.DateTime temp = File.GetLastWriteTime(entry);
+            if (temp > latestSaveTime)
+            {
+                latestSaveTime = temp;
+                filePathOfLatestSave = entry;
+            }
+        }
+        return Read(filePathOfLatestSave);
     }
 
     private static int GetSaveIndex(SaveType saveType)
@@ -231,5 +247,17 @@ public class SaveHandler : MonoBehaviour
             default:
                 return 0;
         }
+    }
+
+    //> This method exists solely for debug display purposes.
+    private static string PathsToFileNameString(List<string> input)
+    {
+        string output = "";
+        foreach (string entry in input)
+        {
+            output += Path.GetFileName(entry) + ", ";
+        }
+        output = output.Remove(output.Length - 2);
+        return output;
     }
 }

@@ -34,13 +34,14 @@ public class SaveStateEntry : MonoBehaviour
     {
         saveState = newSaveState;
         titleField.text = Path.GetFileNameWithoutExtension(path);
-        timestampField.text = System.DateTime.FromFileTime(saveState.timestamp).ToString("dd/MM/yy, hh:mm");
+        System.DateTime ts = System.DateTime.FromFileTime(saveState.timestamp);
+        timestampField.text = $"{ts.ToShortDateString()}, {ts.ToShortTimeString()}";
         identifierField.text = $"{newSaveState.type}Save-{newSaveState.index}";
     }
 
     public void OnButtonPressed()
     {
-        MenuHandler.instance.Open(MenuID.LoadingScreen, MenuID.Load);
+        MenuHandler.instance.Open(MenuID.GameOverlay);
         SaveHandler.Load(saveState);
     }
 }

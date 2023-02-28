@@ -16,6 +16,11 @@ public class LoadMenu : Menu
     [SerializeField]
     private GameObject buttonPrefab;
 
+    private void Start()
+    {
+        id = MenuID.Load;
+    }
+
     private void OnEnable()
     {
         Populate();
@@ -25,16 +30,19 @@ public class LoadMenu : Menu
     {
         // Delete all children of entriesparent
         List<GameObject> children = new List<GameObject>();
-        int childCount = transform.childCount;
+        int childCount = parentTransform.childCount;
+        if (childCount <= 0)
+            return;
+            
         for (int i = 0; i < childCount; i++)
         {
-            Destroy(transform.GetChild(0).gameObject);
+            Destroy(parentTransform.GetChild(0).gameObject);
         }
     }
 
     private void Populate()
     {
-        Dictionary<string, SaveState> allSaveStates = SaveHandler.GetAllSaveStatesWithPaths();
+        Dictionary<string, SaveState> allSaveStates = SaveHandler.GetAllSaveStatesWithPathsInReverseOrder();
         if (allSaveStates.Count == 0)
             return;
 
