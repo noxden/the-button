@@ -164,7 +164,6 @@ public class SaveHandler : MonoBehaviour
         return Save(saveType, out _);
     }
 
-
     public static SaveState Read(string readFilePath)   //< Returns whether loading was successful.    //? Potential property: FilePath which should be read from
     {
         //Debug.Log($"Reading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
@@ -187,8 +186,16 @@ public class SaveHandler : MonoBehaviour
             Debug.LogWarning($"SaveState could not be obtained, it might be corrupted -> Loading of SaveState failed.");
             return false;
         }
-        ScreenConsole.instance.Display($"Loaded \"{saveState.type.ToString()}Save-{saveState.index}\"...");
-
+        Dictionary<string, SaveState> allSaveStatesWithPaths = GetAllSaveStatesWithPathsInReverseOrder();
+        foreach (var item in allSaveStatesWithPaths)
+        {
+            if (saveState.timestamp == item.Value.timestamp)
+            {
+                ScreenConsole.instance.Display($"Loaded \"{Path.GetFileNameWithoutExtension(item.Key)}\"...");
+                // ScreenConsole.instance.Display($"Loaded \"{saveState.type.ToString()}Save-{saveState.index}\"...");
+            }
+            break;
+        }
 
         //> Inject read data into their respective objects
         FindObjectOfType<TheButton>().isPressed_silent = saveState.isButtonPressed;
@@ -257,7 +264,7 @@ public class SaveHandler : MonoBehaviour
         foreach (string entry in allSaveFilePaths)
         {
             long temp = File.GetLastWriteTime(entry).ToFileTime();
-            Debug.Log($"{Path.GetFileNameWithoutExtension(entry)} was written on {File.GetLastWriteTime(entry).ToString()}.");
+            // Debug.Log($"{Path.GetFileNameWithoutExtension(entry)} was written on {File.GetLastWriteTime(entry).ToString()}.");
             if (temp > latestSaveTime)
             {
                 latestSaveTime = temp;
@@ -271,7 +278,7 @@ public class SaveHandler : MonoBehaviour
     {
         List<string> allSaveFilePaths = GetAllSaveFilePaths();
         if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)
-            return null;  
+            return null;
 
         string filePathOfLatestSave = "";
         System.DateTime latestSaveTime = new System.DateTime();
