@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2685682878077129092, guid: 63a4fde9beeed024f815e88004f1838f, type: 3}
       propertyPath: m_Name
-      value: BaseButton
+      value: Button_OpenMenu
       objectReference: {fileID: 0}
     - target: {fileID: 2685682878077129093, guid: 63a4fde9beeed024f815e88004f1838f, type: 3}
       propertyPath: m_Pivot.x
@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2685682878077129093, guid: 63a4fde9beeed024f815e88004f1838f, type: 3}
       propertyPath: m_RootOrder
-      value: 9
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 2685682878077129093, guid: 63a4fde9beeed024f815e88004f1838f, type: 3}
       propertyPath: m_AnchorMax.x

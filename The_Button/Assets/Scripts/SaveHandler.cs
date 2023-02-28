@@ -3,6 +3,10 @@
 // Course:       GameDev Tips & Tricks (Thomas Valentin Klink)
 // Script by:    Daniel Heilmann (771144)
 // Last changed: 27-02-23
+// Notes:
+//  Unfortunately, none of the additional statistics made it
+//  into the final application. "isButtonPressed" is the only
+//  "stat" that is currently being saved.
 //================================================================
 
 using System.Collections;
@@ -295,6 +299,18 @@ public class SaveHandler : MonoBehaviour
             }
         }
         return Read(filePathOfLatestSave);
+    }
+
+    public static void PurgeAllData()
+    {
+        List<string> filePaths;
+        filePaths = new List<string>(Directory.GetFiles(dataFolderPath));
+        foreach (string filePath in filePaths)
+            File.Delete(filePath);
+
+        filePaths = new List<string>(Directory.GetFiles(savesFolderPath));
+        foreach (string filePath in filePaths)
+            File.Delete(filePath);
     }
 
     //> This method exists solely for debug display purposes.
