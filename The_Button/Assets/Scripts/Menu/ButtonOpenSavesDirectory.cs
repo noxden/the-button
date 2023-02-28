@@ -7,6 +7,6 @@ public class ButtonOpenSavesDirectory : ButtonHelper
 {
     public override void OnButtonPressed()
     {
-        EditorUtility.RevealInFinder(Application.persistentDataPath + "/saves");
+        // EditorUtility.RevealInFinder(Application.persistentDataPath + "/saves");
     }
 }
