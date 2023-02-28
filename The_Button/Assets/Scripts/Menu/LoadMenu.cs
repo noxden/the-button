@@ -28,16 +28,17 @@ public class LoadMenu : Menu
 
     private void OnDisable()
     {
-        // Delete all children of entriesparent
+        // Delete all children of EntriesParent
         List<GameObject> children = new List<GameObject>();
         int childCount = parentTransform.childCount;
         if (childCount <= 0)
             return;
-            
+        
         for (int i = 0; i < childCount; i++)
         {
-            Destroy(parentTransform.GetChild(0).gameObject);
+            children.Add(parentTransform.GetChild(i).gameObject);
         }
+        children.ForEach(child => Destroy(child.gameObject));
     }
 
     private void Populate()

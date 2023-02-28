@@ -35,16 +35,46 @@ public class SaveState
 [System.Serializable]
 public class SavePersistentData
 {
-    public int manualSaveIndex;
-    public int autosaveIndex;
-    public int quicksaveIndex;
+    public int manualSaveIndex { get; private set; }
+    public int autosaveIndex { get; private set; }
+    public int quicksaveIndex { get; private set; }
+
+    public void IncreaseSaveIndex(SaveType saveType)
+    {
+        switch (saveType)
+        {
+            case SaveType.Manual:
+                manualSaveIndex++;
+                break;
+            case SaveType.Auto:
+                autosaveIndex++;
+                break;
+            case SaveType.Quick:
+                quicksaveIndex++;
+                break;
+        }
+    }
+
+    public int GetSaveIndex(SaveType saveType)
+    {
+        switch (saveType)
+        {
+            case SaveType.Manual:
+                return manualSaveIndex;
+            case SaveType.Auto:
+                return autosaveIndex;
+            case SaveType.Quick:
+                return quicksaveIndex;
+        }
+        return 0;
+    }
 }
 
 public class SaveHandler : MonoBehaviour
 {
     private const string FileEnding = ".save";
 
-    public static SaveHandler instance;
+    public static SaveHandler instance { get; private set; }
 
     private static string dataFolderPath;
     private static string savesFolderPath;
@@ -69,11 +99,7 @@ public class SaveHandler : MonoBehaviour
     }
 
     //# Handling persistent data
-    void Start()
-    {
-        ReadPersistentData();
-        Load(GetLatestSaveState());
-    }
+    void Start() => ReadPersistentData();
 
     private void OnApplicationQuit() => WritePersistentData();
 
@@ -106,37 +132,42 @@ public class SaveHandler : MonoBehaviour
     }
 
     //# Handling normal save data
-    // TODO: Use reflection to make write work for all different save types with minimal code
-    public static bool Save(SaveType saveType)     //< Returns whether saving was successful.    //? Potential properties: SaveType, ...
+    public static bool Save(SaveType saveType, out string writeFilePath)     //< Returns whether saving was successful.    //? Potential properties: SaveType, ...
     {
         if (!canSave)
         {
             Debug.LogWarning($"You cannot save right now.");   //? Maybe disable "Save Game" UI button in that case?
+            writeFilePath = null;
             return false;
         }
 
-        string writeFilePath = savesFolderPath + $"{saveType.ToString()}Save-{data.manualSaveIndex}{FileEnding}";
-        Debug.Log($"Saving to \"{Path.GetFileNameWithoutExtension(writeFilePath)}\"...");
+        writeFilePath = savesFolderPath + $"{saveType.ToString()}Save-{data.GetSaveIndex(saveType)}{FileEnding}";
+        ScreenConsole.instance.Display($"Saving to \"{Path.GetFileNameWithoutExtension(writeFilePath)}\"...");
 
         //> Fill data into new save state
         SaveState saveState = new SaveState();
         saveState.timestamp = System.DateTime.Now.ToFileTime();
         saveState.type = saveType;
-        saveState.index = GetSaveIndex(saveType);
+        saveState.index = data.GetSaveIndex(saveType);
         saveState.isButtonPressed = FindObjectOfType<TheButton>().isPressed;
 
         //> Convert to json and then save in file
         string serializedSaveState = JsonUtility.ToJson(saveState, true);
         File.WriteAllText(writeFilePath, serializedSaveState);
 
-        data.manualSaveIndex++;
+        data.IncreaseSaveIndex(saveType);
         return true;
+    }
+
+    public static bool Save(SaveType saveType)  //< Overload that makes out parameter optional
+    {
+        return Save(saveType, out _);
     }
 
 
     public static SaveState Read(string readFilePath)   //< Returns whether loading was successful.    //? Potential property: FilePath which should be read from
     {
-        Debug.Log($"Reading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
+        //Debug.Log($"Reading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
 
         //> Read json file and then fill its data back into a new save state
         if (!File.Exists((readFilePath)))
@@ -156,7 +187,8 @@ public class SaveHandler : MonoBehaviour
             Debug.LogWarning($"SaveState could not be obtained, it might be corrupted -> Loading of SaveState failed.");
             return false;
         }
-        Debug.Log($"Loading \"{saveState.type} {saveState.index}\"...");
+        ScreenConsole.instance.Display($"Loaded \"{saveState.type.ToString()}Save-{data.GetSaveIndex(saveState.type)}\"...");
+
 
         //> Inject read data into their respective objects
         FindObjectOfType<TheButton>().isPressed_silent = saveState.isButtonPressed;
@@ -198,7 +230,7 @@ public class SaveHandler : MonoBehaviour
             return null;
         }
 
-        Debug.Log($"Found the following ({allSaveFilePaths.Count}) files:\n{PathsToFileNameString(allSaveFilePaths)}");
+        //Debug.Log($"Found the following ({allSaveFilePaths.Count}) files:\n{PathsToFileNameString(allSaveFilePaths)}");
         return allSaveFilePaths;
     }
 
@@ -217,14 +249,15 @@ public class SaveHandler : MonoBehaviour
     public static SaveState GetLatestSaveState()
     {
         List<string> allSaveFilePaths = GetAllSaveFilePaths();
-        if (allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
-            return new SaveState();          //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
+        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
+            return new SaveState();                                      //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
 
         string filePathOfLatestSave = "";
-        System.DateTime latestSaveTime = new System.DateTime();
+        long latestSaveTime = 0L;
         foreach (string entry in allSaveFilePaths)
         {
-            System.DateTime temp = File.GetLastWriteTime(entry);
+            long temp = File.GetLastWriteTime(entry).ToFileTime();
+            Debug.Log($"{Path.GetFileNameWithoutExtension(entry)} was written on {File.GetLastWriteTime(entry).ToString()}.");
             if (temp > latestSaveTime)
             {
                 latestSaveTime = temp;
@@ -234,19 +267,27 @@ public class SaveHandler : MonoBehaviour
         return Read(filePathOfLatestSave);
     }
 
-    private static int GetSaveIndex(SaveType saveType)
+    public static SaveState GetLatestSaveState(SaveType saveType)
     {
-        switch (saveType)
+        List<string> allSaveFilePaths = GetAllSaveFilePaths();
+        if (allSaveFilePaths == null || allSaveFilePaths.Count == 0)     //< Not necessary, as giving "null" to Load() just does not load anything -> Scene stays unchanged. 
+            return new SaveState();                                      //< And because the default scene is equal to one loaded from a new SaveState, there should be no noticable difference.
+
+        string filePathOfLatestSave = "";
+        System.DateTime latestSaveTime = new System.DateTime();
+        foreach (string entry in allSaveFilePaths)
         {
-            case SaveType.Manual:
-                return data.manualSaveIndex;
-            case SaveType.Quick:
-                return data.quicksaveIndex;
-            case SaveType.Auto:
-                return data.autosaveIndex;
-            default:
-                return 0;
+            if (Read(entry).type == saveType)      //!< This implementation is pretty scuffed / very unclean.
+            {
+                System.DateTime temp = File.GetLastWriteTime(entry);
+                if (temp > latestSaveTime)
+                {
+                    latestSaveTime = temp;
+                    filePathOfLatestSave = entry;
+                }
+            }
         }
+        return Read(filePathOfLatestSave);
     }
 
     //> This method exists solely for debug display purposes.

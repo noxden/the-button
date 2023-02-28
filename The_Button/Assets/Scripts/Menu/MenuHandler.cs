@@ -3,6 +3,9 @@
 // Course:       GameDev Tips & Tricks (Thomas Valentin Klink)
 // Script by:    Daniel Heilmann (771144)
 // Last changed: 27-02-23
+// Notes:
+//  Unfortunately, I did not have enough time to implement a 
+//  Save menu
 //================================================================
 
 using System.Collections;
@@ -13,7 +16,7 @@ public enum MenuID { None, Title, GameOverlay, Side, Load, Save, Settings, Credi
 
 public class MenuHandler : MonoBehaviour
 {
-    public static MenuHandler instance;
+    public static MenuHandler instance { get; private set; }
 
     private Dictionary<MenuID, Menu> allMenus;
 
@@ -60,10 +63,11 @@ public class MenuHandler : MonoBehaviour
             return;
         }
 
+        MenuID currentMenu = GetCurrentMenu();
         if (menu.openingType == OpeningType.Solo)
             CloseAll();
 
-        menu.Open();
+        menu.Open(currentMenu);
         openedMenus.Add(menu);
     }
 
@@ -72,7 +76,7 @@ public class MenuHandler : MonoBehaviour
         if (!TryResolveID(id, out Menu menu))
             return;
 
-        if (menu.returnToMenuOnClose != MenuID.None)
+        if (menu.closingType == ClosingType.Return)
             Open(menu.returnToMenuOnClose);
 
         menu.Close();
@@ -86,6 +90,24 @@ public class MenuHandler : MonoBehaviour
             menu.Close();
         }
         openedMenus.Clear();    //< Excess capacity does not need to be trimmed, as "openedMenus" will be filled again soon.
+    }
+
+    public bool isOnTitleScreen()
+    {
+        foreach (Menu menu in openedMenus)
+        {
+            if (menu.id == MenuID.Title)
+                return true;
+        }
+        return false;
+    }
+
+    public MenuID GetCurrentMenu()
+    {
+        if (openedMenus.Count > 0)
+            return openedMenus[openedMenus.Count - 1].id;
+        else
+            return MenuID.None;
     }
 
     private bool TryResolveID(MenuID id, out Menu menu)

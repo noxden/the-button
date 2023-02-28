@@ -54,7 +54,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 0
   openingType: 0
-  returnToMenuOnClose: 0
+  closingType: 1
 --- !u!222 &8985337975073114192
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum OpeningType { Solo, Overlay }
+public enum ClosingType { Close, Return }
 
 public class Menu : MonoBehaviour
 {
@@ -18,10 +19,18 @@ public class Menu : MonoBehaviour
     [SerializeField]
     public OpeningType openingType;
     [SerializeField]
-    public MenuID returnToMenuOnClose = MenuID.None;
+    public ClosingType closingType;
+
+    public MenuID returnToMenuOnClose { get; private set; } = MenuID.None;
 
     public void Open()
     {
+        this.gameObject.SetActive(true);
+    }
+
+    public void Open(MenuID previousMenu)
+    {
+        returnToMenuOnClose = previousMenu;
         this.gameObject.SetActive(true);
     }
 

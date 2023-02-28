@@ -386,6 +386,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 4
   openingType: 0
+  closingType: 1
   returnToMenuOnClose: 1
   parentTransform: {fileID: 2072579557}
   buttonPrefab: {fileID: 1025794327937566472, guid: 706e803dfddd71f4ca4facc5fa12e6aa, type: 3}

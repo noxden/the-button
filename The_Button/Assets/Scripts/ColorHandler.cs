@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ColorHandler : MonoBehaviour
 {
-    public static ColorHandler instance;
+    public static ColorHandler instance { get; private set; }
 
     [SerializeField]
     private List<Material> palette;

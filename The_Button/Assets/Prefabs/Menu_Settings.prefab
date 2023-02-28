@@ -261,6 +261,10 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4976525419928861730, guid: 97d6468291122a54ba13813c86c5bb33, type: 3}
+      propertyPath: closingType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4976525419928861730, guid: 97d6468291122a54ba13813c86c5bb33, type: 3}
       propertyPath: returnToMenuOnClose
       value: 1
       objectReference: {fileID: 0}
