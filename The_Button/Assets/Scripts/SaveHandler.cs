@@ -2,7 +2,7 @@
 // Darmstadt University of Applied Sciences, Expanded Realities
 // Course:       GameDev Tips & Tricks (Thomas Valentin Klink)
 // Script by:    Daniel Heilmann (771144)
-// Last changed: 26-02-23
+// Last changed: 27-02-23
 //================================================================
 
 using System.Collections;
@@ -16,8 +16,8 @@ public enum SaveType { Manual, Quick, Auto }
 public class SaveState
 {
     public long timestamp;
-    public SaveType saveType;
-    public int saveIndex;
+    public SaveType type;
+    public int index;
     public bool isButtonPressed;
     public int amountButtonPressesTotal;
     public int amountMouseClicksTotal;
@@ -42,19 +42,16 @@ public class SavePersistentData
 
 public class SaveHandler : MonoBehaviour
 {
-    private const string Identifier_ManualSave = "ManualSave";
-    private const string Identifier_Quicksave = "QuickSave";
-    private const string Identifier_Autosave = "AutoSave";
     private const string FileEnding = ".save";
 
-    private static SaveHandler instance;
+    public static SaveHandler instance;
 
-    private string dataFolderPath;
-    private string savesFolderPath;
-    private string savePersistentFilePath;
-    private SavePersistentData data;
+    private static string dataFolderPath;
+    private static string savesFolderPath;
+    private static string savePersistentFilePath;
+    private static SavePersistentData data;
 
-    public bool canSave = true;
+    public static bool canSave = true;
 
     private void Awake()
     {
@@ -106,7 +103,7 @@ public class SaveHandler : MonoBehaviour
 
     //# Handling normal save data
     // TODO: Use reflection to make write work for all different save types with minimal code
-    public bool Save(SaveType saveType)     //< Returns whether saving was successful.    //? Potential properties: SaveType, ...
+    public static bool Save(SaveType saveType)     //< Returns whether saving was successful.    //? Potential properties: SaveType, ...
     {
         if (!canSave)
         {
@@ -120,8 +117,8 @@ public class SaveHandler : MonoBehaviour
         //> Fill data into new save state
         SaveState saveState = new SaveState();
         saveState.timestamp = System.DateTime.Now.ToFileTime();
-        saveState.saveType = saveType;
-        saveState.saveIndex = GetSaveIndex(saveType);
+        saveState.type = saveType;
+        saveState.index = GetSaveIndex(saveType);
         saveState.isButtonPressed = FindObjectOfType<TheButton>().isPressed;
 
         //> Convert to json and then save in file
@@ -133,26 +130,32 @@ public class SaveHandler : MonoBehaviour
     }
 
 
-    public bool Load(string readFilePath)   //< Returns whether loading was successful.    //? Potential property: FilePath which should be read from
+    public static SaveState Read(string readFilePath)   //< Returns whether loading was successful.    //? Potential property: FilePath which should be read from
     {
-        Debug.Log($"Loading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
+        Debug.Log($"Reading \"{Path.GetFileNameWithoutExtension(readFilePath)}\"...");
 
         //> Read json file and then fill its data back into a new save state
         if (!File.Exists((readFilePath)))
         {
             Debug.LogWarning($"The file you are trying to read does not exist at {readFilePath}.");
-            return false;
+            return null;
         }
         string readText = File.ReadAllText(readFilePath);
         SaveState deserializedSaveState = JsonUtility.FromJson<SaveState>(readText);
-        if (deserializedSaveState == null)
+        return deserializedSaveState;
+    }
+
+    public static bool Load(SaveState saveState)
+    {
+        if (saveState == null)
         {
-            Debug.LogWarning($"Could not read json file at path \"{readFilePath}\". Loading of SaveState failed.");
+            Debug.LogWarning($"SaveState could not be obtained, it might be corrupted -> Loading of SaveState failed.");
             return false;
         }
+        Debug.Log($"Loading \"{saveState.type} {saveState.index}\"...");
 
         //> Inject read data into their respective objects
-        FindObjectOfType<TheButton>().isPressed_silent = deserializedSaveState.isButtonPressed;
+        FindObjectOfType<TheButton>().isPressed_silent = saveState.isButtonPressed;
         // = deserializedSaveState.amountButtonPressesTotal;
         // = deserializedSaveState.amountMouseClicksTotal;
         // = deserializedSaveState.amountMouseClicksHit;
@@ -168,9 +171,8 @@ public class SaveHandler : MonoBehaviour
     }
 
     public void Save() => Save(SaveType.Manual);    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
-    public void Load() => Load(GetLatestSave());    //! OVERLOAD FOR DEBUG PURPOSES. NEEDED TO MANUALLY ASSIGN TO BUTTON.
 
-    public void ForceAutosave()
+    public static void ForceAutosave()
     {
         if (canSave)
             Save(SaveType.Auto);
@@ -183,7 +185,7 @@ public class SaveHandler : MonoBehaviour
         }
     }
 
-    private string PathsToFileNames(string[] input)
+    private static string PathsToFileNames(List<string> input)
     {
         string output = "";
         foreach (string entry in input)
@@ -194,26 +196,29 @@ public class SaveHandler : MonoBehaviour
         return output;
     }
 
-    private string GetLatestSave()
+    public static Dictionary<string, SaveState> GetAllSaveStatesWithPaths()
     {
-        string[] allSaveFilesPaths = Directory.GetFiles(savesFolderPath);
-        Debug.Log($"Found the following ({allSaveFilesPaths.Length}) files:\n{PathsToFileNames(allSaveFilesPaths)}");
+        Dictionary<string, SaveState> allSaveStates = new Dictionary<string, SaveState>();
 
-        string filePathOfLatestSave = "";
-        System.DateTime latestSaveTime = new System.DateTime();
+        List<string> allSaveFilesPaths = new List<string>(Directory.GetFiles(savesFolderPath));
+        allSaveFilesPaths.RemoveAll(x => x.Contains(FileEnding) == false);
+
+        if (allSaveFilesPaths.Count == 0)
+        {
+            Debug.Log($"Could not find any save files in \"{savesFolderPath}\".");
+            return null;
+        }
+
+        Debug.Log($"Found the following ({allSaveFilesPaths.Count}) files:\n{PathsToFileNames(allSaveFilesPaths)}");
+
         foreach (string entry in allSaveFilesPaths)
         {
-            System.DateTime temp = File.GetLastWriteTime(entry);
-            if (temp > latestSaveTime)
-            {
-                latestSaveTime = temp;
-                filePathOfLatestSave = entry;
-            }
+            allSaveStates.Add(entry, Read(entry));
         }
-        return filePathOfLatestSave;
+        return allSaveStates;
     }
 
-    private int GetSaveIndex(SaveType saveType)
+    private static int GetSaveIndex(SaveType saveType)
     {
         switch (saveType)
         {
